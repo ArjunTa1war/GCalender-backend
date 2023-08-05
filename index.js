@@ -159,7 +159,6 @@ app.post("/shareevent", fetchuser, async (req, res) => {
       hour12: true,
     });
      
-    console.log(formattedDate,formattedTime);
     const distinct_id = user.email; 
     const event_name = "EVENTSHARED" 
     const properties = {				
@@ -169,12 +168,11 @@ app.post("/shareevent", fetchuser, async (req, res) => {
       "date":formattedDate,
       "time":formattedTime
     }  
-    
     const event = new Event(distinct_id, event_name, properties)
     const response  = supr_client.track_event(event)
     response.then((res) => console.log("response", res));
 
-   return res.json({ success, event1});
+    return res.json({ success, event1});
 
   } catch (error) {
     console.error(error.message);
