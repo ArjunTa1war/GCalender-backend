@@ -136,10 +136,6 @@ app.post("/shareevent", fetchuser, async (req, res) => {
     if (!event1) {
       return res.status(404).json({ success,error: 'event not found' });
     }
-    if(user){
-    event1.collaborators.push({ user: user._id });
-    await event1.save();
-    }
     success = true;
     const dateString = event1.start;
     const dateObject = new Date(dateString);
@@ -161,7 +157,6 @@ app.post("/shareevent", fetchuser, async (req, res) => {
       user1.add_email(share) 
       const response1 = user1.save()
       response1.then((res) => console.log("response", res));
-
       const event_name = "EVENTSHARED" 
       const properties = {				
         "recep":share,									
@@ -175,6 +170,8 @@ app.post("/shareevent", fetchuser, async (req, res) => {
       response.then((res) => console.log("response", res)); 
     }
     else{
+    event1.collaborators.push({ user: user._id });
+    await event1.save();
     const distinct_id = user.email; 
     const event_name = "EVENTSHARED" 
     const properties = {				
