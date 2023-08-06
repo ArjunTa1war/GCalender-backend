@@ -24,7 +24,7 @@ app.post("/register",async(req,res)=>{
     const user = await User.create({
         email : req.body.email,
         name : req.body.name,
-        phone : req.body.phone,
+        phone : req.body.countryCode+req.body.phone,
         password : req.body.password
     })
     const data = {
@@ -130,8 +130,7 @@ app.post("/shareevent", fetchuser, async (req, res) => {
   try {
     let success = false;
     const { share, eventid } = req.body;
-    let user = await User.findOne({ email: share });
-    
+    const user = await User.findOne({ email: share });
     if (!user) {
       return res.status(404).json({ success, message: "no such user exists" });
     }
@@ -143,7 +142,6 @@ app.post("/shareevent", fetchuser, async (req, res) => {
     event1.collaborators.push({ user: user._id });
     await event1.save();
     success = true;
-
     const dateString = event1.start;
     const dateObject = new Date(dateString);
     const formattedDate = dateObject.toLocaleDateString('en-GB', {
@@ -180,6 +178,22 @@ app.post("/shareevent", fetchuser, async (req, res) => {
   }
 });
 
+/***************************** Edit Event *******************************************************/
+
+app.post("/editevent/:id",fetchuser,async(req,res)=>{
+  try {
+    let event1 = await Events.findById(req.params.id);
+    if (!event1) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    event1.title = req.body.title;
+    await event1.save();
+    res.json({event1});
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).send("some error occurred");
+  }
+});
  /**********************listening on port **************************************/
 
 app.listen(port,()=>{
