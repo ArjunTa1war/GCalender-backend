@@ -126,72 +126,75 @@ app.delete("/deleteevent/:id",async (req, res) => {
 
 /***************************** Share events *******************************************************/
 
-app.post("/shareevent", fetchuser, async (req, res) => {
+app.post('/shareevent', fetchuser, async (req, res) => {
   try {
-    let success = false;
     const { share, eventid } = req.body;
-    const user = await User.findOne({ email: share });
-    let user2 = await User.findById(req.user.id);
-    let event1 = await Events.findById(eventid);
+    const user2 = await User.findById(req.user.id);
+    const event1 = await Events.findById(eventid);
+
     if (!event1) {
-      return res.status(404).json({ success,error: 'event not found' });
+      return res.status(404).json({ error: 'Event not found' });
     }
-    success = true;
-    const dateString = event1.start;
-    const dateObject = new Date(dateString);
-    const formattedDate = dateObject.toLocaleDateString('en-GB', {
+
+    const formattedDate = event1.start.toLocaleDateString('en-GB', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
     });
 
-    const formattedTime = dateObject.toLocaleTimeString('en-US', {
+    const formattedTime = event1.start.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
     });
-     
-    if (!user) {
-      const distinct_id = share;
-      const user1 = supr_client.user.get_instance(distinct_id);
-      user1.add_email(share) 
-      const response1 = user1.save()
-      response1.then((res) => console.log("response", res));
-      const event_name = "EVENTSHARED" 
-      const properties = {				
-        "recep":share,									
-        "owner":user2.name,
-        "title":event1.title,
-        "date":formattedDate,
-        "time":formattedTime
-      }  
-      const event = new Event(distinct_id, event_name, properties)
-      const response  = supr_client.track_event(event)
-      response.then((res) => console.log("response", res)); 
-    }
-    else{
-    event1.collaborators.push({ user: user._id });
-    await event1.save();
-    const distinct_id = user.email; 
-    const event_name = "EVENTSHARED" 
-    const properties = {				
-      "recep":user.name,									
-      "owner":user2.name,
-      "title":event1.title,
-      "date":formattedDate,
-      "time":formattedTime
-    }  
-    const event = new Event(distinct_id, event_name, properties)
-    const response  = supr_client.track_event(event)
-    response.then((res) => console.log("response", res));
-  }
-    return res.json({ success, event1});
 
+    let success = false;
+    let distinct_id = '';
+    let properties = {};
+
+    const user = await User.findOne({ email: share });
+
+    if (!user) {
+      distinct_id = share;
+      const user1 = supr_client.user.get_instance(distinct_id);
+      user1.add_email(share);
+      const response1 = await user1.save();
+      console.log('response', response1);
+
+      properties = {
+        recep: share,
+        owner: user2.name,
+        title: event1.title,
+        date: formattedDate,
+        time: formattedTime,
+      };
+    } else {
+      event1.collaborators.push({ user: user._id });
+      await event1.save();
+      distinct_id = user.email;
+
+      properties = {
+        recep: user.name,
+        owner: user2.name,
+        title: event1.title,
+        date: formattedDate,
+        time: formattedTime,
+      };
+    }
+
+    const event_name = 'EVENTSHARED';
+    const event = new Event(distinct_id, event_name, properties);
+    const response = await supr_client.track_event(event);
+    console.log('response', response);
+
+    success = true;
+    return res.json({ success, event1 });
   } catch (error) {
     console.error(error.message);
-    return res.status(500).send("some error occurred");
+    return res.status(500).send('Some error occurred');
   }
 });
+
 
 /***************************** Edit Event *******************************************************/
 
