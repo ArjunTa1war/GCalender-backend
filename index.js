@@ -148,8 +148,7 @@ app.post("/shareevent", fetchuser, async (req, res) => {
       month: '2-digit',
       day: '2-digit',
     });
-    
-    // Format time as 'hh:mm AM/PM'
+
     const formattedTime = dateObject.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
@@ -157,7 +156,6 @@ app.post("/shareevent", fetchuser, async (req, res) => {
     });
      
     if (!user) {
-      console.log("hello");
       const distinct_id = share;
       const user1 = supr_client.user.get_instance(distinct_id);
       user1.add_email(share) 
