@@ -131,16 +131,15 @@ app.post("/shareevent", fetchuser, async (req, res) => {
     let success = false;
     const { share, eventid } = req.body;
     const user = await User.findOne({ email: share });
-    if (!user) {
-      return res.status(404).json({ success, message: "no such user exists" });
-    }
     let user2 = await User.findById(req.user.id);
     let event1 = await Events.findById(eventid);
     if (!event1) {
       return res.status(404).json({ success,error: 'event not found' });
     }
+    if(user){
     event1.collaborators.push({ user: user._id });
     await event1.save();
+    }
     success = true;
     const dateString = event1.start;
     const dateObject = new Date(dateString);
@@ -157,6 +156,27 @@ app.post("/shareevent", fetchuser, async (req, res) => {
       hour12: true,
     });
      
+    if (!user) {
+      console.log("hello");
+      const distinct_id = share;
+      const user1 = supr_client.user.get_instance(distinct_id);
+      user1.add_email(share) 
+      const response1 = user1.save()
+      response1.then((res) => console.log("response", res));
+
+      const event_name = "EVENTSHARED" 
+      const properties = {				
+        "recep":share,									
+        "owner":user2.name,
+        "title":event1.title,
+        "date":formattedDate,
+        "time":formattedTime
+      }  
+      const event = new Event(distinct_id, event_name, properties)
+      const response  = supr_client.track_event(event)
+      response.then((res) => console.log("response", res)); 
+    }
+    else{
     const distinct_id = user.email; 
     const event_name = "EVENTSHARED" 
     const properties = {				
@@ -169,7 +189,7 @@ app.post("/shareevent", fetchuser, async (req, res) => {
     const event = new Event(distinct_id, event_name, properties)
     const response  = supr_client.track_event(event)
     response.then((res) => console.log("response", res));
-
+  }
     return res.json({ success, event1});
 
   } catch (error) {
