@@ -39,8 +39,13 @@ app.post("/register",async(req,res)=>{
     user1.add_email(user.email) 
     user1.add_sms("+"+user.phone) 
     user1.add_whatsapp("+"+user.phone)
-    const response = await user1.save()
-    response.then((res) => console.log("response", res));
+    try {
+      const response = await user1.save();
+      console.log("response", response);
+    } catch (error) {
+      console.error("Error saving user:", error);
+      success = false;
+    }
     res.json({success,authtoken});
 })
 
